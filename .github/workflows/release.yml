@@ -9,18 +9,17 @@ permissions:
   contents: write
 
 jobs:
+  # ── Build & embed the React web UI ─────────────────────────────────────────
   build-webui:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
@@ -32,20 +31,21 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
 
-      - name: Upload web UI artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: webui-dist
           path: src/MonaServer2.Service/wwwroot/
 
+  # ── Windows x64: publish → sign → build installer ──────────────────────────
   publish-windows:
     needs: build-webui
     runs-on: windows-latest
+    env:
+      HAVE_CERT: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
@@ -54,6 +54,9 @@ jobs:
         with:
           name: webui-dist
           path: src/MonaServer2.Service/wwwroot/
+
+      - name: Generate app icon
+        run: powershell -File installer\windows\Generate-Icon.ps1
 
       - name: Publish Service
         run: |
@@ -71,26 +74,85 @@ jobs:
             -p:PublishSingleFile=true `
             -o publish/win-x64/desktop
 
-      - name: Package
+      # ── Code Signing (skipped if no certificate secret) ─────────────────
+      - name: Decode certificate
+        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+        run: |
+          $pfx = [Convert]::FromBase64String("${{ secrets.CERTIFICATE_PFX_BASE64 }}")
+          [IO.File]::WriteAllBytes("$env:TEMP\codesign.pfx", $pfx)
+
+      - name: Sign Service executable
+        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+        run: |
+          powershell -File installer\windows\Sign-Binaries.ps1 `
+            -PublishDir publish/win-x64/service `
+            -CertPfxPath "$env:TEMP\codesign.pfx" `
+            -CertPassword "${{ secrets.CERTIFICATE_PFX_PASSWORD }}"
+
+      - name: Sign Desktop executable
+        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+        run: |
+          powershell -File installer\windows\Sign-Binaries.ps1 `
+            -PublishDir publish/win-x64/desktop `
+            -CertPfxPath "$env:TEMP\codesign.pfx" `
+            -CertPassword "${{ secrets.CERTIFICATE_PFX_PASSWORD }}"
+
+      # ── Build Inno Setup installer ───────────────────────────────────────
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Create output directory
+        run: New-Item -ItemType Directory -Force -Path dist\installer
+
+      - name: Build installer
         run: |
           $version = "${{ github.ref_name }}" -replace '^v', ''
-          Compress-Archive `
-            -Path publish/win-x64/* `
-            -DestinationPath "MonaServer2-GUI-$version-win-x64.zip"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            /DMyAppVersion=$version `
+            installer\windows\MonaServer2-GUI.iss
+        env:
+          # Inno Setup SignTool — used only when cert is available
+          SIGNTOOL_CMD: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' && format('sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f "{0}\codesign.pfx" /p "{1}" $f', env.TEMP, secrets.CERTIFICATE_PFX_PASSWORD) || '' }}
+
+      - name: Sign installer (if cert available)
+        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+        run: |
+          $installer = Get-ChildItem dist\installer\*.exe | Select-Object -First 1
+          powershell -File installer\windows\Sign-Binaries.ps1 `
+            -PublishDir dist\installer `
+            -CertPfxPath "$env:TEMP\codesign.pfx" `
+            -CertPassword "${{ secrets.CERTIFICATE_PFX_PASSWORD }}"
+
+      # ── Also make a portable zip ─────────────────────────────────────────
+      - name: Package portable zip
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $zipPath = "MonaServer2-GUI-$version-win-x64.zip"
+          Compress-Archive -Path publish/win-x64/service,publish/win-x64/desktop -DestinationPath $zipPath
+
+      - name: Rename installer for upload
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $src = Get-ChildItem dist\installer\*-Setup.exe | Select-Object -First 1
+          if ($src) {
+            Copy-Item $src.FullName "MonaServer2-GUI-$version-win-x64-Setup.exe"
+          }
 
       - uses: actions/upload-artifact@v4
         with:
           name: release-win-x64
-          path: MonaServer2-GUI-*.zip
+          path: |
+            MonaServer2-GUI-*-win-x64.zip
+            MonaServer2-GUI-*-win-x64-Setup.exe
 
+  # ── Linux x64 ──────────────────────────────────────────────────────────────
   publish-linux:
     needs: build-webui
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
@@ -124,16 +186,16 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: release-linux-x64
-          path: MonaServer2-GUI-*.tar.gz
+          path: MonaServer2-GUI-*-linux-x64.tar.gz
 
+  # ── macOS ARM64 ─────────────────────────────────────────────────────────────
   publish-macos:
     needs: build-webui
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
@@ -167,8 +229,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: release-osx-arm64
-          path: MonaServer2-GUI-*.tar.gz
+          path: MonaServer2-GUI-*-osx-arm64.tar.gz
 
+  # ── Publish GitHub Release ───────────────────────────────────────────────────
   create-release:
     needs: [publish-windows, publish-linux, publish-macos]
     runs-on: ubuntu-latest
@@ -190,21 +253,38 @@ jobs:
           body: |
             ## MonaServer2 GUI ${{ github.ref_name }}
 
-            **Author:** Mehdi Mahdian (m.mahdian@gmail.com)
+            **Author:** Mehdi Mahdian — [m.mahdian@gmail.com](mailto:m.mahdian@gmail.com)
 
             Powered by [MonaServer2](https://github.com/MonaSolutions/MonaServer2) (MonaSolutions / Haivision) — GPL-3.0
 
-            See [CHANGELOG.md](CHANGELOG.md) for what changed in this release.
+            See [CHANGELOG.md](CHANGELOG.md) for full details.
 
-            ### Downloads
+            ---
+
+            ### Windows Installation
+
+            **Recommended — Installer (full install with service + shortcuts):**
+            ```
+            MonaServer2-GUI-*-win-x64-Setup.exe
+            ```
+            - Installs and auto-starts the companion Windows Service
+            - Creates Start Menu folder and optional Desktop shortcut
+            - Registers the uninstaller in Programs & Features
+            - Executables are code-signed
+
+            **Portable — no install required:**
+            ```
+            MonaServer2-GUI-*-win-x64.zip
+            ```
+
+            ### Linux / macOS
 
             | Platform | File |
             |---|---|
-            | Windows x64 | `MonaServer2-GUI-*-win-x64.zip` |
             | Linux x64 | `MonaServer2-GUI-*-linux-x64.tar.gz` |
             | macOS ARM64 | `MonaServer2-GUI-*-osx-arm64.tar.gz` |
 
-            ### OBS Plugin
+            ### OBS Studio Plugin (`obs-mona-live`)
 
-            Pre-built `obs-mona-live` plugin binaries are included in each archive under `obs-plugin/`.
-            Install via the **OBS Plugin** page in the desktop app, or follow [manual instructions](obs-plugin/README.md).
+            The OBS plugin source is in `obs-plugin/`. After installing the app, open
+            **OBS Plugin** in the sidebar and click **Install Plugin** for one-click setup.

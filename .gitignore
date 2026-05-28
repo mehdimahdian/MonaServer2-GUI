@@ -30,6 +30,9 @@ webui/.pnpm-store/
 # Build output embedded in service
 src/MonaServer2.Service/wwwroot/
 
+# TypeScript incremental build info
+webui/tsconfig.tsbuildinfo
+
 # MonaServer2 binary (downloaded at runtime, not committed)
 tools/monaserver2/MonaServer
 tools/monaserver2/MonaServer.exe
@@ -76,6 +79,11 @@ obs-plugin/.build/
 obs-plugin/dist/
 obs-plugin/deps/
 obs-plugin/cmake/common/
+
+# Code signing certificates (never committed — store in GitHub Secrets)
+installer/windows/codesign.pfx
+installer/windows/codesign.pfx.b64
+dist/
 
 # AI tooling metadata (never committed)
 .claude/
