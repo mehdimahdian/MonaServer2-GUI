@@ -1,0 +1,92 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             xmlns:models="using:MonaServer2.Core.Models"
+             x:Class="MonaServer2.Desktop.Views.StreamsView"
+             x:DataType="vm:StreamsViewModel"
+             Background="#0F0F1A">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- Toolbar -->
+    <Border Grid.Row="0" Padding="24,16" BorderBrush="#2D2D4E" BorderThickness="0,0,0,1" Background="#0F0F1A">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="Streams" FontSize="22" FontWeight="Bold"
+                   Foreground="#E0E0FF" VerticalAlignment="Center" Margin="8,0,24,0"/>
+        <TextBox Grid.Column="1" Text="{Binding FilterText}"
+                 Watermark="Filter by name..." Margin="0,0,16,0"
+                 Background="#1A1A2E" Foreground="#E0E0FF" BorderBrush="#3D3D6E"
+                 CornerRadius="6" Padding="10,6"/>
+        <Button Grid.Column="2" Command="{Binding RefreshCommand}"
+                Padding="12,6" Background="#252545" Foreground="#A0A0D0"
+                CornerRadius="6" Margin="0,0,8,0">
+          Refresh
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Publication list -->
+    <DataGrid Grid.Row="1"
+              ItemsSource="{Binding Publications}"
+              SelectedItem="{Binding SelectedPublication}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              CanUserSortColumns="True"
+              Background="#0F0F1A"
+              RowBackground="#0F0F1A"
+              GridLinesVisibility="Horizontal"
+              HorizontalGridLinesBrush="#1A1A3E"
+              Foreground="#D0D0F0"
+              BorderThickness="0"
+              ColumnHeaderHeight="40">
+
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+        <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="90" />
+        <DataGridTextColumn Header="Client" Binding="{Binding ClientAddress}" Width="130" />
+        <DataGridTextColumn Header="Subscribers" Binding="{Binding SubscriberCount}" Width="90" />
+        <DataGridTextColumn Header="In" Binding="{Binding ByteRateIn}" Width="90" />
+        <DataGridTextColumn Header="Out" Binding="{Binding ByteRateOut}" Width="90" />
+        <DataGridCheckBoxColumn Header="Rec" Binding="{Binding IsRecording}" Width="60" />
+        <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="110" />
+      </DataGrid.Columns>
+
+    </DataGrid>
+
+    <!-- Detail panel -->
+    <Border Grid.Row="2" Background="#131325" BorderBrush="#2D2D4E" BorderThickness="0,1,0,0"
+            IsVisible="{Binding SelectedPublication, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <ScrollViewer HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal" Margin="20,12" Spacing="32"
+                    DataContext="{Binding SelectedPublication}">
+          <StackPanel Spacing="4">
+            <TextBlock Text="TRACKS" FontSize="10" Foreground="#5050A0" />
+            <ItemsControl ItemsSource="{Binding Tracks}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:StreamTrack">
+                  <TextBlock Foreground="#A0A0D0" FontSize="12" Margin="0,2">
+                    <TextBlock.Text>
+                      <MultiBinding StringFormat="{}{0} | {1} {2}x{3} {4}fps">
+                        <Binding Path="Type"/>
+                        <Binding Path="Codec"/>
+                        <Binding Path="Width"/>
+                        <Binding Path="Height"/>
+                        <Binding Path="Fps"/>
+                      </MultiBinding>
+                    </TextBlock.Text>
+                  </TextBlock>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="RECORDING" FontSize="10" Foreground="#5050A0" />
+            <TextBlock Text="{Binding RecordingPath, FallbackValue='—'}" Foreground="#A0A0D0" FontSize="12"/>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+
+  </Grid>
+
+</UserControl>

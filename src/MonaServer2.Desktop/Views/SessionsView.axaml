@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             x:Class="MonaServer2.Desktop.Views.SessionsView"
+             x:DataType="vm:SessionsViewModel"
+             Background="#0F0F1A">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <Border Grid.Row="0" Padding="24,16" BorderBrush="#2D2D4E" BorderThickness="0,0,0,1" Background="#0F0F1A">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="Sessions" FontSize="22" FontWeight="Bold"
+                   Foreground="#E0E0FF" VerticalAlignment="Center" Margin="8,0,24,0"/>
+        <ComboBox Grid.Column="2" ItemsSource="{Binding ProtocolOptions}"
+                  SelectedItem="{Binding ProtocolFilter}"
+                  Margin="0,0,8,0" Background="#1A1A2E" Foreground="#E0E0FF"
+                  BorderBrush="#3D3D6E" Padding="10,6" CornerRadius="6"/>
+        <Button Grid.Column="3" Command="{Binding RefreshCommand}"
+                Padding="12,6" Background="#252545" Foreground="#A0A0D0" CornerRadius="6">
+          Refresh
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Session list -->
+    <DataGrid Grid.Row="1"
+              ItemsSource="{Binding Sessions}"
+              SelectedItem="{Binding SelectedSession}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              CanUserSortColumns="True"
+              Background="#0F0F1A"
+              RowBackground="#0F0F1A"
+              GridLinesVisibility="Horizontal"
+              HorizontalGridLinesBrush="#1A1A3E"
+              Foreground="#D0D0F0"
+              BorderThickness="0">
+
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Address"    Binding="{Binding Address}"       Width="160" />
+        <DataGridTextColumn Header="Protocol"   Binding="{Binding Protocol}"      Width="90" />
+        <DataGridTextColumn Header="Connected"  Binding="{Binding Duration}"      Width="110" />
+        <DataGridTextColumn Header="Publishing" Binding="{Binding PublishingTo}"  Width="*" />
+        <DataGridTextColumn Header="In"         Binding="{Binding ByteRateIn}"    Width="90" />
+        <DataGridTextColumn Header="Out"        Binding="{Binding ByteRateOut}"   Width="90" />
+      </DataGrid.Columns>
+
+    </DataGrid>
+
+  </Grid>
+
+</UserControl>

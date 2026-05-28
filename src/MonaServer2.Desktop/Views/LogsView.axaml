@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             xmlns:models="using:MonaServer2.Core.Models"
+             x:Class="MonaServer2.Desktop.Views.LogsView"
+             x:DataType="vm:LogsViewModel"
+             Background="#0F0F1A">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <Border Grid.Row="0" Padding="24,12" BorderBrush="#2D2D4E" BorderThickness="0,0,0,1" Background="#0F0F1A">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="Logs" FontSize="22" FontWeight="Bold"
+                   Foreground="#E0E0FF" VerticalAlignment="Center" Margin="8,0,24,0"/>
+        <TextBox Grid.Column="1" Text="{Binding FilterText}"
+                 Watermark="Search logs..." Margin="0,0,12,0"
+                 Background="#1A1A2E" Foreground="#E0E0FF" BorderBrush="#3D3D6E"
+                 CornerRadius="6" Padding="10,6"/>
+        <ComboBox Grid.Column="2" ItemsSource="{Binding LogLevels}"
+                  SelectedItem="{Binding MinLevel}"
+                  Margin="0,0,12,0" Background="#1A1A2E" Foreground="#E0E0FF"
+                  BorderBrush="#3D3D6E" Padding="10,6" CornerRadius="6"/>
+        <ToggleButton Grid.Column="3" IsChecked="{Binding AutoScroll}"
+                      Margin="0,0,8,0" Padding="10,6" CornerRadius="6"
+                      Background="#252545" Foreground="#A0A0D0">
+          Auto-scroll
+        </ToggleButton>
+        <Button Grid.Column="4" Command="{Binding ClearCommand}"
+                Padding="10,6" Background="#3D1A1A" Foreground="#DD8888" CornerRadius="6">
+          Clear
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Log entries -->
+    <ListBox Grid.Row="1"
+             ItemsSource="{Binding FilteredEntries}"
+             Background="#0A0A14"
+             BorderThickness="0"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="models:LogEntry">
+          <Grid ColumnDefinitions="140,60,*" Margin="8,2">
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss.fff}'}"
+                       Foreground="#404060" FontFamily="Consolas,Monospace" FontSize="11" />
+            <Border Grid.Column="1" Padding="4,1" CornerRadius="3" Margin="4,0"
+                    Background="{Binding Level, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <TextBlock Text="{Binding Level}"
+                         FontFamily="Consolas,Monospace" FontSize="10" FontWeight="Bold"
+                         Foreground="{Binding Level}" />
+            </Border>
+            <TextBlock Grid.Column="2"
+                       Text="{Binding Message}"
+                       Foreground="#C0C0E0" FontFamily="Consolas,Monospace" FontSize="11"
+                       TextWrapping="NoWrap" />
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+  </Grid>
+
+</UserControl>

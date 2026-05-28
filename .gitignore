@@ -1,0 +1,83 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+*.DotSettings.user
+TestResults/
+publish/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+!**/packages/repositories.config
+
+# Rider / VS Code / Visual Studio
+.idea/
+.vscode/
+*.sln.ide
+
+# Node / pnpm
+node_modules/
+webui/dist/
+webui/.pnpm-store/
+.pnpm-debug.log*
+.npm
+
+# Build output embedded in service
+src/MonaServer2.Service/wwwroot/
+
+# MonaServer2 binary (downloaded at runtime, not committed)
+tools/monaserver2/MonaServer
+tools/monaserver2/MonaServer.exe
+tools/monaserver2/MonaServer.bak
+tools/monaserver2/MonaServer.exe.bak
+tools/monaserver2/*.dll
+tools/monaserver2/*.so
+tools/monaserver2/*.dylib
+tools/monaserver2/*.ini
+tools/monaserver2/*.pem
+tools/monaserver2/*.pfx
+tools/monaserver2/*.p12
+tools/monaserver2/www/
+
+# Config / secrets (user-specific)
+appsettings.Local.json
+appsettings.Production.json
+*.pfx
+*.p12
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+coverage.xml
+*.coverage
+
+# Installer output
+installer/bin/
+installer/obj/
+*.msi
+*.wixpdb
+
+# OBS plugin build artifacts (binaries built separately via CMake)
+obs-plugin/build/
+obs-plugin/.build/
+obs-plugin/dist/
+obs-plugin/deps/
+obs-plugin/cmake/common/
+
+# AI tooling metadata (never committed)
+.claude/
+*.claude
+CLAUDE.md

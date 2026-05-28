@@ -1,0 +1,93 @@
+name: Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1'  # Monday 08:00 UTC — check for MonaServer2 updates
+
+jobs:
+  build-dotnet:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: TestResults/
+
+  build-webui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: webui/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: webui
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: webui
+        run: pnpm build
+
+  check-monaserver2-updates:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for MonaServer2 new release
+        id: check
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/MonaSolutions/MonaServer2/releases/latest | jq -r '.tag_name')
+          CURRENT=$(cat tools/monaserver2/VERSION 2>/dev/null || echo "none")
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "needs_update=$([ "$LATEST" != "$CURRENT" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Create issue if update available
+        if: steps.check.outputs.needs_update == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `MonaServer2 update available: ${{ steps.check.outputs.latest }}`,
+              body: `MonaServer2 has released a new version: **${{ steps.check.outputs.latest }}**\n\nCurrent bundled version: **${{ steps.check.outputs.current }}**\n\nPlease update the bundled binary and release a new GUI version.\n\nRelease: https://github.com/MonaSolutions/MonaServer2/releases/tag/${{ steps.check.outputs.latest }}`,
+              labels: ['monaserver2-update', 'dependencies']
+            })

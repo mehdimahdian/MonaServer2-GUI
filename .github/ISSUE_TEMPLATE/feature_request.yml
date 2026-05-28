@@ -1,0 +1,44 @@
+name: Feature Request
+description: Suggest a new feature for MonaServer2 GUI
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Note:** Features that require new streaming protocols or codec support should be requested in [MonaServer2](https://github.com/MonaSolutions/MonaServer2/issues). This project only wraps MonaServer2's capabilities.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do that the current UI doesn't support?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      multiple: true
+      options:
+        - Dashboard
+        - Stream Manager
+        - Sessions
+        - Configuration Editor
+        - Log Viewer
+        - Service Control
+        - Web UI
+        - Installer / Packaging
+        - Auto-updater
+        - API / Integration
+        - Other
+    validations:
+      required: true

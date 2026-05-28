@@ -1,0 +1,180 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             x:Class="MonaServer2.Desktop.Views.ConfigView"
+             x:DataType="vm:ConfigViewModel"
+             Background="#0F0F1A">
+
+  <Grid RowDefinitions="Auto,Auto,*">
+
+    <!-- Header -->
+    <Border Grid.Row="0" Padding="24,16" BorderBrush="#2D2D4E" BorderThickness="0,0,0,1">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Configuration" FontSize="22" FontWeight="Bold"
+                   Foreground="#E0E0FF" VerticalAlignment="Center" Margin="8,0,16,0"/>
+        <Button Command="{Binding ToggleModeCommand}"
+                Padding="10,6" Background="#252545" Foreground="#A0A0D0" CornerRadius="6">
+          <TextBlock Text="{Binding IsRawMode, FallbackValue='Raw Mode'}" />
+        </Button>
+        <Button Command="{Binding LoadCommand}"
+                Padding="10,6" Background="#252545" Foreground="#A0A0D0" CornerRadius="6">
+          Reload
+        </Button>
+        <Button Command="{Binding SaveCommand}"
+                Padding="10,6" Background="#1A3D2E" Foreground="#22DD88" CornerRadius="6">
+          Save
+        </Button>
+      </StackPanel>
+    </Border>
+
+    <!-- Status message -->
+    <Border Grid.Row="1" Padding="24,8"
+            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Background="#1A3D2E">
+      <TextBlock Text="{Binding StatusMessage}" Foreground="#22DD88" FontSize="12" />
+    </Border>
+
+    <!-- Visual mode -->
+    <ScrollViewer Grid.Row="2" IsVisible="{Binding !IsRawMode}">
+      <StackPanel Margin="24,16" Spacing="20" DataContext="{Binding Config}">
+
+        <!-- Server section -->
+        <Border Classes="Section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Server" Classes="SectionTitle"/>
+            <StackPanel Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="Name" Classes="FieldLabel" Width="140"/>
+                <TextBox Text="{Binding Server.Name}" Classes="Field" Width="300"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="Threads (0=auto)" Classes="FieldLabel" Width="140"/>
+                <NumericUpDown Value="{Binding Server.Threads}" Minimum="0" Maximum="256" Classes="Field" Width="120"/>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- HTTP section -->
+        <Border Classes="Section">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="HTTP" Classes="SectionTitle"/>
+              <ToggleSwitch IsChecked="{Binding Http.Enabled}" OffContent="Disabled" OnContent="Enabled"/>
+            </StackPanel>
+            <StackPanel Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="Host" Classes="FieldLabel" Width="140"/>
+                <TextBox Text="{Binding Http.Host}" Classes="Field" Width="200"/>
+                <TextBlock Text="Port" Classes="FieldLabel" Width="60"/>
+                <NumericUpDown Value="{Binding Http.Port}" Minimum="1" Maximum="65535" Classes="Field" Width="100"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="TLS Enabled" Classes="FieldLabel" Width="140"/>
+                <CheckBox IsChecked="{Binding Http.TlsEnabled}"/>
+                <TextBlock Text="TLS Port" Classes="FieldLabel" Width="60"/>
+                <NumericUpDown Value="{Binding Http.TlsPort}" Minimum="1" Maximum="65535" Classes="Field" Width="100"/>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- RTMP section -->
+        <Border Classes="Section">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="RTMP" Classes="SectionTitle"/>
+              <ToggleSwitch IsChecked="{Binding Rtmp.Enabled}" OffContent="Disabled" OnContent="Enabled"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="Host" Classes="FieldLabel" Width="140"/>
+              <TextBox Text="{Binding Rtmp.Host}" Classes="Field" Width="200"/>
+              <TextBlock Text="Port" Classes="FieldLabel" Width="60"/>
+              <NumericUpDown Value="{Binding Rtmp.Port}" Minimum="1" Maximum="65535" Classes="Field" Width="100"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- SRT section -->
+        <Border Classes="Section">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="SRT" Classes="SectionTitle"/>
+              <ToggleSwitch IsChecked="{Binding Srt.Enabled}" OffContent="Disabled" OnContent="Enabled"/>
+            </StackPanel>
+            <StackPanel Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="Port" Classes="FieldLabel" Width="140"/>
+                <NumericUpDown Value="{Binding Srt.Port}" Minimum="1" Maximum="65535" Classes="Field" Width="100"/>
+                <TextBlock Text="Latency (ms)" Classes="FieldLabel" Width="100"/>
+                <NumericUpDown Value="{Binding Srt.Latency}" Minimum="20" Maximum="30000" Classes="Field" Width="100"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="Passphrase" Classes="FieldLabel" Width="140"/>
+                <TextBox Text="{Binding Srt.Passphrase}" PasswordChar="*" Classes="Field" Width="200"/>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Logging section -->
+        <Border Classes="Section">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Logging" Classes="SectionTitle"/>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="Log Directory" Classes="FieldLabel" Width="140"/>
+              <TextBox Text="{Binding Log.Directory}" Classes="Field" Width="200"/>
+              <TextBlock Text="Max Size (bytes)" Classes="FieldLabel" Width="120"/>
+              <NumericUpDown Value="{Binding Log.MaxSize}" Minimum="1024" Maximum="104857600" Classes="Field" Width="120"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Raw mode -->
+    <TextBox Grid.Row="2" IsVisible="{Binding IsRawMode}"
+             Text="{Binding RawIni}"
+             AcceptsReturn="True" AcceptsTab="True"
+             FontFamily="Consolas,Monospace" FontSize="13"
+             Background="#0A0A14" Foreground="#C0C0E0"
+             BorderThickness="0" Padding="24,16"
+             TextWrapping="NoWrap"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+
+    <!-- Loading overlay -->
+    <Border Grid.Row="2" Background="#80000000" IsVisible="{Binding IsLoading}">
+      <TextBlock Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#A0A0D0" FontSize="16"/>
+    </Border>
+
+  </Grid>
+
+  <UserControl.Styles>
+    <Style Selector="Border.Section">
+      <Setter Property="Background" Value="#1A1A2E" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="20,16" />
+      <Setter Property="BorderBrush" Value="#2D2D4E" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="TextBlock.SectionTitle">
+      <Setter Property="Foreground" Value="#A0A0E0" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.FieldLabel">
+      <Setter Property="Foreground" Value="#6060A0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox.Field">
+      <Setter Property="Background" Value="#252545" />
+      <Setter Property="Foreground" Value="#E0E0FF" />
+      <Setter Property="BorderBrush" Value="#3D3D6E" />
+      <Setter Property="CornerRadius" Value="5" />
+    </Style>
+  </UserControl.Styles>
+
+</UserControl>

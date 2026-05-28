@@ -1,0 +1,39 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             xmlns:views="using:MonaServer2.Desktop.Views"
+             x:Class="MonaServer2.Desktop.App"
+             RequestedThemeVariant="Dark">
+
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:DashboardViewModel">
+      <views:DashboardView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:StreamsViewModel">
+      <views:StreamsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SessionsViewModel">
+      <views:SessionsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ConfigViewModel">
+      <views:ConfigView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:LogsViewModel">
+      <views:LogsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ServiceViewModel">
+      <views:ServiceView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PushStreamViewModel">
+      <views:PushStreamView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:OBSSetupViewModel">
+      <views:OBSSetupView />
+    </DataTemplate>
+  </Application.DataTemplates>
+
+</Application>

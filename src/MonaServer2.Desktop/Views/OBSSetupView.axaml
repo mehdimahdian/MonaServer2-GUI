@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             x:Class="MonaServer2.Desktop.Views.OBSSetupView"
+             x:DataType="vm:OBSSetupViewModel"
+             Background="#0F0F1A">
+
+  <ScrollViewer>
+    <StackPanel Margin="32,28" Spacing="24" MaxWidth="720">
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="OBS Studio Plugin" FontSize="24" FontWeight="Bold" Foreground="#E0E0FF" />
+        <TextBlock Foreground="#6060A0" FontSize="13"
+                   Text="Install the Mona Live Output plugin into OBS Studio for native WebRTC / SRT streaming." />
+      </StackPanel>
+
+      <!-- Status card -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="16">
+          <TextBlock Text="Detection Status" Foreground="#6060A0" FontSize="11" />
+
+          <!-- OBS status row -->
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Ellipse Width="12" Height="12" Fill="{Binding ObsStatusColor}" VerticalAlignment="Center"/>
+            <TextBlock Text="OBS Studio:" Foreground="#8080B0" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ObsStatusText}" Foreground="#E0E0FF" FontSize="13"
+                       VerticalAlignment="Center" TextWrapping="Wrap"/>
+          </StackPanel>
+
+          <!-- Plugin status row -->
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Ellipse Width="12" Height="12" Fill="{Binding PluginStatusColor}" VerticalAlignment="Center"/>
+            <TextBlock Text="Mona Live Plugin:" Foreground="#8080B0" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding PluginStatusText}" Foreground="#E0E0FF" FontSize="13" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsDetecting}"
+                       Height="3" CornerRadius="2" Background="#252545" Foreground="#4499DD"/>
+
+          <Button Command="{Binding DetectOBSCommand}"
+                  IsEnabled="{Binding !IsDetecting}"
+                  Padding="18,9" CornerRadius="8"
+                  Background="#1A2D3D" Foreground="#4499DD">
+            ⟳  Re-detect OBS
+          </Button>
+        </StackPanel>
+      </Border>
+
+      <!-- Auto-install card (shown when OBS found + plugin bundled) -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1"
+              IsVisible="{Binding ObsFound}">
+        <StackPanel Spacing="14">
+          <TextBlock Text="Automatic Installation" Foreground="#6060A0" FontSize="11" />
+          <TextBlock TextWrapping="Wrap" Foreground="#A0A0C0" FontSize="13">
+            <Run Text="The plugin will be copied to:" />
+          </TextBlock>
+          <TextBlock Text="{Binding ObsInstallPath}" Foreground="#6080A0" FontSize="11"
+                     FontFamily="Consolas,Menlo,monospace" TextWrapping="Wrap"/>
+
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Command="{Binding InstallPluginCommand}"
+                    IsEnabled="{Binding !IsInstalling}"
+                    Padding="20,10" CornerRadius="8"
+                    Background="#2D1A3D" Foreground="#BB88EE">
+              Install / Reinstall Plugin
+            </Button>
+          </StackPanel>
+
+          <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsInstalling}"
+                       Height="3" CornerRadius="2" Background="#252545" Foreground="#6060C0"/>
+
+          <!-- Success message -->
+          <Border Background="#1A2D1A" CornerRadius="8" Padding="12"
+                  IsVisible="{Binding SuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="#22DD88" FontSize="12" TextWrapping="Wrap"/>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- Manual install card -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="Manual Installation" Foreground="#6060A0" FontSize="11" VerticalAlignment="Center"/>
+            <Button Command="{Binding ToggleManualInstructionsCommand}"
+                    Padding="10,4" CornerRadius="6"
+                    Background="#252535" Foreground="#8080B0" FontSize="11">
+              Show / Hide
+            </Button>
+          </StackPanel>
+
+          <StackPanel Spacing="12" IsVisible="{Binding ShowManualInstructions}">
+            <TextBlock Foreground="#A0A0C0" FontSize="13" TextWrapping="Wrap">
+              <Run>Use this guide if the automatic installer is unavailable or you prefer a manual setup.</Run>
+            </TextBlock>
+
+            <Border Background="#13132A" CornerRadius="8" Padding="14">
+              <StackPanel Spacing="10">
+                <TextBlock Text="Step-by-step" Foreground="#6060A0" FontSize="11"/>
+                <ItemsControl ItemsSource="{Binding InstallSteps}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,3">
+                        <TextBlock Text="→" Foreground="#4499DD" FontSize="13" VerticalAlignment="Top"/>
+                        <TextBlock Text="{Binding}" Foreground="#C0C0E0" FontSize="13"
+                                   TextWrapping="Wrap" MaxWidth="580"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="6">
+              <TextBlock Text="Download pre-built plugin:" Foreground="#8080B0" FontSize="12"/>
+              <TextBlock Text="{Binding DownloadUrl}" Foreground="#4499DD" FontSize="12"
+                         TextDecorations="Underline" Cursor="Hand"/>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Error -->
+      <Border Background="#3D1A1A" CornerRadius="8" Padding="14"
+              IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="#DD8888" FontSize="12" TextWrapping="Wrap"/>
+      </Border>
+
+      <!-- OBS plugin feature summary -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Plugin Features" Foreground="#6060A0" FontSize="11"/>
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="Native WebRTC output (WHIP)" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="Ultra-low latency SRT (20–50 ms)" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="Browser playback via MonaServer2 WebRTC relay" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="RTMP fallback transport" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="Multi-bitrate ABR streaming" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="5" Grid.Column="1" Text="Remote control channel (scene switch, recording)" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="6" Grid.Column="1" Text="Real-time telemetry dashboard" Foreground="#C0C0E0" FontSize="12"/>
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="▶ " Foreground="#22DD88" FontSize="12"/>
+            <TextBlock Grid.Row="7" Grid.Column="1" Text="PTZ / drone control channel" Foreground="#C0C0E0" FontSize="12"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

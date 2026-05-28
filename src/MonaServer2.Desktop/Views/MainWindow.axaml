@@ -1,0 +1,137 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+        x:Class="MonaServer2.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="MonaServer2 GUI"
+        Width="1280" Height="800"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F0F1A">
+
+  <Grid ColumnDefinitions="220,*">
+
+    <!-- Sidebar -->
+    <Border Grid.Column="0" Background="#1A1A2E" BorderBrush="#2D2D4E" BorderThickness="0,0,1,0">
+      <DockPanel>
+
+        <!-- Logo -->
+        <Border DockPanel.Dock="Top" Padding="16,20,16,16" BorderBrush="#2D2D4E" BorderThickness="0,0,0,1">
+          <StackPanel Spacing="4">
+            <TextBlock Text="MonaServer2" FontSize="18" FontWeight="Bold" Foreground="#E0E0FF" />
+            <TextBlock Text="GUI Manager" FontSize="11" Foreground="#6060A0" />
+          </StackPanel>
+        </Border>
+
+        <!-- Credit -->
+        <Border DockPanel.Dock="Bottom" Padding="12,8">
+          <TextBlock FontSize="9" Foreground="#3A3A5C" TextWrapping="Wrap"
+                     Text="Powered by MonaServer2&#x0A;MonaSolutions / Haivision" />
+        </Border>
+
+        <!-- Status badge -->
+        <Border DockPanel.Dock="Bottom" Padding="16,12" BorderBrush="#2D2D4E" BorderThickness="0,1,0,0">
+          <StackPanel Spacing="4">
+            <TextBlock Text="Service" FontSize="10" Foreground="#6060A0" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Ellipse Width="8" Height="8" Fill="{Binding ConnectionColor}" />
+              <TextBlock Text="{Binding ConnectionStatus}" FontSize="11" Foreground="#A0A0C0" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Navigation -->
+        <StackPanel DockPanel.Dock="Top" Margin="0,8,0,0" Spacing="2">
+
+          <Button Command="{Binding NavigateToDashboardCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="⌂" FontSize="16" />
+              <TextBlock Text="Dashboard" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToStreamsCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="▶" FontSize="14" />
+              <TextBlock Text="Streams" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToSessionsCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="◌" FontSize="14" />
+              <TextBlock Text="Sessions" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToConfigCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="⚙" FontSize="14" />
+              <TextBlock Text="Configuration" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToLogsCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="≡" FontSize="14" />
+              <TextBlock Text="Logs" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToServiceCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="⚡" FontSize="14" />
+              <TextBlock Text="Service Control" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToPushStreamCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="⇪" FontSize="14" />
+              <TextBlock Text="Push Stream" />
+            </StackPanel>
+          </Button>
+
+          <Button Command="{Binding NavigateToOBSSetupCommand}"
+                  Classes="NavButton" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <TextBlock Text="◉" FontSize="14" />
+              <TextBlock Text="OBS Plugin" />
+            </StackPanel>
+          </Button>
+
+        </StackPanel>
+
+      </DockPanel>
+    </Border>
+
+    <!-- Content area -->
+    <ContentControl Grid.Column="1"
+                    Content="{Binding CurrentPage}"
+                    Background="#0F0F1A" />
+
+  </Grid>
+
+  <Window.Styles>
+    <Style Selector="Button.NavButton">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="#A0A0C0" />
+      <Setter Property="Padding" Value="16,10" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.NavButton:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#252545" />
+      <Setter Property="TextElement.Foreground" Value="#E0E0FF" />
+    </Style>
+  </Window.Styles>
+
+</Window>

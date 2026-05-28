@@ -1,0 +1,73 @@
+name: Bug Report
+description: Report a bug in MonaServer2 GUI
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Note:** For issues with streaming, protocols, or media handling, please check [MonaServer2](https://github.com/MonaSolutions/MonaServer2/issues) first — this project is a GUI wrapper.
+
+  - type: input
+    id: gui-version
+    attributes:
+      label: MonaServer2 GUI Version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: monaserver-version
+    attributes:
+      label: MonaServer2 Binary Version
+      placeholder: e.g. from Settings → About
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows 11
+        - Windows 10
+        - Ubuntu 24.04
+        - Ubuntu 22.04
+        - Debian 12
+        - macOS 15
+        - macOS 14
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of the bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Open the app
+        2. Navigate to Streams
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: From Log Viewer or `%APPDATA%\MonaServer2-GUI\logs\` (Windows) / `~/.local/share/monaserver2-gui/logs/` (Linux)
+      render: text

@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             x:Class="MonaServer2.Desktop.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel"
+             Background="#0F0F1A">
+
+  <ScrollViewer>
+    <StackPanel Margin="32,28" Spacing="24">
+
+      <!-- Header -->
+      <StackPanel Orientation="Horizontal" Spacing="16">
+        <TextBlock Text="Dashboard" FontSize="24" FontWeight="Bold" Foreground="#E0E0FF" VerticalAlignment="Center"/>
+        <Border Padding="10,4" CornerRadius="12" Background="{Binding StatusBackground}">
+          <TextBlock Text="{Binding StatusBadge}" FontSize="12" FontWeight="SemiBold"
+                     Foreground="{Binding StatusColor}" />
+        </Border>
+      </StackPanel>
+
+      <!-- Stat cards row 1 -->
+      <UniformGrid Rows="1" Columns="4" HorizontalAlignment="Stretch">
+        <Border Classes="StatCard" Margin="0,0,12,0">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Uptime" Classes="StatLabel"/>
+            <TextBlock Text="{Binding Uptime}" Classes="StatValue" FontSize="22"/>
+          </StackPanel>
+        </Border>
+        <Border Classes="StatCard" Margin="0,0,12,0">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Connections" Classes="StatLabel"/>
+            <TextBlock Text="{Binding TotalConnections}" Classes="StatValue" FontSize="28"/>
+          </StackPanel>
+        </Border>
+        <Border Classes="StatCard" Margin="0,0,12,0">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Publications" Classes="StatLabel"/>
+            <TextBlock Text="{Binding TotalPublications}" Classes="StatValue" FontSize="28"/>
+          </StackPanel>
+        </Border>
+        <Border Classes="StatCard">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Version" Classes="StatLabel"/>
+            <TextBlock Text="{Binding Version}" Classes="StatValue" FontSize="18"/>
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <!-- Bandwidth row -->
+      <UniformGrid Rows="1" Columns="2" HorizontalAlignment="Stretch">
+        <Border Classes="StatCard" Margin="0,0,12,0">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Bandwidth In" Classes="StatLabel"/>
+            <TextBlock Text="{Binding BandwidthIn}" Classes="StatValue" Foreground="#22AAFF"/>
+          </StackPanel>
+        </Border>
+        <Border Classes="StatCard">
+          <StackPanel Spacing="6">
+            <TextBlock Text="Bandwidth Out" Classes="StatLabel"/>
+            <TextBlock Text="{Binding BandwidthOut}" Classes="StatValue" Foreground="#FFAA22"/>
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <!-- Protocol breakdown -->
+      <Border Classes="StatCard">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Connections by Protocol" Classes="StatLabel" FontSize="13"/>
+          <ItemsControl ItemsSource="{Binding ConnectionsByProtocol}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,16,8" Padding="14,8" CornerRadius="8" Background="#252545">
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding Key}" Foreground="#A0A0D0" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Value}" Foreground="#E0E0FF" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+
+  <UserControl.Styles>
+    <Style Selector="Border.StatCard">
+      <Setter Property="Background" Value="#1A1A2E" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="20,16" />
+      <Setter Property="BorderBrush" Value="#2D2D4E" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="TextBlock.StatLabel">
+      <Setter Property="Foreground" Value="#6060A0" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.StatValue">
+      <Setter Property="Foreground" Value="#E0E0FF" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="26" />
+    </Style>
+  </UserControl.Styles>
+
+</UserControl>

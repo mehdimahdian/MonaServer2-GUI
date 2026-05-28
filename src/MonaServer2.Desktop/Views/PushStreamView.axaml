@@ -1,0 +1,250 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             x:Class="MonaServer2.Desktop.Views.PushStreamView"
+             x:DataType="vm:PushStreamViewModel"
+             Background="#0F0F1A">
+
+  <UserControl.Styles>
+    <Style Selector="Button.SourceTab">
+      <Setter Property="Background" Value="#252535" />
+      <Setter Property="Foreground" Value="#8080B0" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Padding" Value="18,9" />
+    </Style>
+    <Style Selector="Button.SourceTab:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2D2D4E" />
+    </Style>
+    <Style Selector="Button.SourceTab.active">
+      <Setter Property="Background" Value="#1E2D44" />
+      <Setter Property="Foreground" Value="#4499DD" />
+    </Style>
+    <Style Selector="Button.SourceTabCalib.active">
+      <Setter Property="Background" Value="#2A1A3D" />
+      <Setter Property="Foreground" Value="#BB88EE" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,*">
+
+    <!-- Header -->
+    <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Margin="32,28,32,0" Spacing="4">
+      <TextBlock Text="Push Stream" FontSize="24" FontWeight="Bold" Foreground="#E0E0FF" />
+      <TextBlock Text="Send video or a calibration pattern to MonaServer2 via RTMP"
+                 Foreground="#6060A0" FontSize="13" />
+    </StackPanel>
+
+    <!-- Left: controls -->
+    <ScrollViewer Grid.Column="0" Grid.Row="1" Margin="32,20,16,28">
+      <StackPanel Spacing="20" MaxWidth="560">
+
+        <!-- Source card -->
+        <Border Background="#1A1A2E" CornerRadius="12" Padding="22" BorderBrush="#2D2D4E" BorderThickness="1">
+          <StackPanel Spacing="14">
+            <TextBlock Text="Source" Foreground="#6060A0" FontSize="11" />
+
+            <!-- Source type tab selector -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Command="{Binding SelectFileSourceCommand}"
+                      Classes="SourceTab"
+                      Classes.active="{Binding IsFileSource}">
+                Video File
+              </Button>
+              <Button Command="{Binding SelectCalibrationSourceCommand}"
+                      Classes="SourceTab SourceTabCalib"
+                      Classes.active="{Binding IsCalibrationSource}">
+                Calibration Pattern
+              </Button>
+            </StackPanel>
+
+            <!-- File picker -->
+            <StackPanel Spacing="8" IsVisible="{Binding IsFileSource}">
+              <TextBlock Text="Video file path" Foreground="#8080B0" FontSize="12" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Text="{Binding FilePath}"
+                         Watermark="/path/to/video.mp4"
+                         Background="#0F0F1A" Foreground="#E0E0FF"
+                         BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7" />
+                <Button Grid.Column="1" Command="{Binding BrowseFileCommand}"
+                        Margin="8,0,0,0" Padding="14,7" CornerRadius="8"
+                        Background="#252535" Foreground="#A0A0C0">
+                  Browse
+                </Button>
+              </Grid>
+              <CheckBox IsChecked="{Binding LoopFile}" Foreground="#A0A0C0" FontSize="13">
+                Loop file
+              </CheckBox>
+            </StackPanel>
+
+            <!-- Calibration info -->
+            <Border Background="#13132A" CornerRadius="8" Padding="12"
+                    IsVisible="{Binding IsCalibrationSource}">
+              <TextBlock Foreground="#8080A0" FontSize="12" TextWrapping="Wrap"
+                         Text="Streams SMPTE color bars + 1 kHz tone. Includes MonaServer2 GUI branding, stream key, timecode, and resolution — useful for end-to-end signal verification." />
+            </Border>
+
+          </StackPanel>
+        </Border>
+
+        <!-- Destination card -->
+        <Border Background="#1A1A2E" CornerRadius="12" Padding="22" BorderBrush="#2D2D4E" BorderThickness="1">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Destination" Foreground="#6060A0" FontSize="11" />
+
+            <TextBlock Text="RTMP push URL" Foreground="#8080B0" FontSize="12" />
+            <TextBox Text="{Binding RtmpUrl}"
+                     Background="#0F0F1A" Foreground="#E0E0FF"
+                     BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+
+            <TextBlock Text="Stream key" Foreground="#8080B0" FontSize="12" Margin="0,4,0,0"/>
+            <TextBox Text="{Binding StreamKey}"
+                     Background="#0F0F1A" Foreground="#E0E0FF"
+                     BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Encoding card -->
+        <Border Background="#1A1A2E" CornerRadius="12" Padding="22" BorderBrush="#2D2D4E" BorderThickness="1">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Encoding" Foreground="#6060A0" FontSize="11" />
+
+            <Grid ColumnDefinitions="*,16,*">
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Width" Foreground="#8080B0" FontSize="12" />
+                <TextBox Text="{Binding Width}" Background="#0F0F1A" Foreground="#E0E0FF"
+                         BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="4">
+                <TextBlock Text="Height" Foreground="#8080B0" FontSize="12" />
+                <TextBox Text="{Binding Height}" Background="#0F0F1A" Foreground="#E0E0FF"
+                         BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+              </StackPanel>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,16,*" Margin="0,6,0,0">
+              <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Frame rate" Foreground="#8080B0" FontSize="12" />
+                <TextBox Text="{Binding FrameRate}" Background="#0F0F1A" Foreground="#E0E0FF"
+                         BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+              </StackPanel>
+              <StackPanel Grid.Column="2" Spacing="4">
+                <TextBlock Text="Video bitrate (kbps)" Foreground="#8080B0" FontSize="12" />
+                <TextBox Text="{Binding VideoBitrateKbps}" Background="#0F0F1A" Foreground="#E0E0FF"
+                         BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- Stream control card -->
+        <Border Background="#1A1A2E" CornerRadius="12" Padding="22" BorderBrush="#2D2D4E" BorderThickness="1">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Stream Control" Foreground="#6060A0" FontSize="11" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <!-- Active indicator: one ellipse per state -->
+              <Ellipse Width="10" Height="10" Fill="#22DD88" VerticalAlignment="Center"
+                       IsVisible="{Binding IsStreaming}" />
+              <Ellipse Width="10" Height="10" Fill="#484860" VerticalAlignment="Center"
+                       IsVisible="{Binding !IsStreaming}" />
+              <TextBlock Text="{Binding StreamStatusText}" Foreground="#A0A0C0"
+                         FontSize="13" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Button Command="{Binding StartStreamCommand}"
+                      IsEnabled="{Binding !IsStreaming}"
+                      Padding="20,10" CornerRadius="8"
+                      Background="#1A3D2E" Foreground="#22DD88">
+                ▶  Start Stream
+              </Button>
+              <Button Command="{Binding StopStreamCommand}"
+                      IsEnabled="{Binding IsStreaming}"
+                      Padding="20,10" CornerRadius="8"
+                      Background="#3D1A1A" Foreground="#DD4444">
+                ■  Stop
+              </Button>
+            </StackPanel>
+
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
+                         Height="3" CornerRadius="2" Background="#252545" Foreground="#6060C0"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Error -->
+        <Border Background="#3D1A1A" CornerRadius="8" Padding="14"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <TextBlock Text="{Binding ErrorMessage}" Foreground="#DD8888" FontSize="12" TextWrapping="Wrap"/>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Right: live preview panel -->
+    <Border Grid.Column="1" Grid.Row="1"
+            Width="420" Margin="0,20,32,28"
+            Background="#1A1A2E" CornerRadius="12"
+            BorderBrush="#2D2D4E" BorderThickness="1"
+            VerticalAlignment="Top">
+      <StackPanel Spacing="14" Margin="20">
+        <TextBlock Text="Live Preview" Foreground="#6060A0" FontSize="11" />
+
+        <!-- Frame area -->
+        <Border CornerRadius="8" ClipToBounds="True"
+                Background="#0F0F1A" Width="376" Height="212">
+          <Panel>
+            <!-- Placeholder -->
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8"
+                        IsVisible="{Binding PreviewFrame, Converter={x:Static ObjectConverters.IsNull}}">
+              <TextBlock Text="⬜" FontSize="36" Foreground="#252545" HorizontalAlignment="Center" />
+              <TextBlock Text="No preview" Foreground="#3A3A5C" FontSize="12" HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Live frame -->
+            <Image Source="{Binding PreviewFrame}" Stretch="Uniform"
+                   IsVisible="{Binding PreviewFrame, Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </Panel>
+        </Border>
+
+        <!-- Status badge -->
+        <StackPanel Orientation="Horizontal" Spacing="6"
+                    IsVisible="{Binding PreviewStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+          <Ellipse Width="7" Height="7" Fill="#22DD88" VerticalAlignment="Center"
+                   IsVisible="{Binding IsPreviewRunning}" />
+          <Ellipse Width="7" Height="7" Fill="#DD4444" VerticalAlignment="Center"
+                   IsVisible="{Binding !IsPreviewRunning}" />
+          <TextBlock Text="{Binding PreviewStatusText}" Foreground="#8080A0"
+                     FontSize="11" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Preview URL -->
+        <TextBlock Text="Preview URL (HTTP FLV / HLS)" Foreground="#6060A0" FontSize="11" />
+        <TextBox Text="{Binding PreviewUrl}"
+                 Watermark="http://localhost:80/live/stream.flv"
+                 Background="#0F0F1A" Foreground="#E0E0FF"
+                 BorderBrush="#3D3D5E" CornerRadius="6" Padding="8,6" FontSize="12"/>
+
+        <!-- Preview controls -->
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Command="{Binding StartPreviewCommand}"
+                  IsEnabled="{Binding !IsPreviewRunning}"
+                  Padding="14,8" CornerRadius="8"
+                  Background="#1A2D3D" Foreground="#4499DD">
+            ▶  Start Preview
+          </Button>
+          <Button Command="{Binding StopPreviewCommand}"
+                  IsEnabled="{Binding IsPreviewRunning}"
+                  Padding="14,8" CornerRadius="8"
+                  Background="#252535" Foreground="#8080B0">
+            ■  Stop
+          </Button>
+        </StackPanel>
+
+        <TextBlock Foreground="#3A3A5C" FontSize="10" TextWrapping="Wrap"
+                   Text="Preview refreshes ~every 1.5 s via single-frame grab. Requires FFmpeg on the service host." />
+
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

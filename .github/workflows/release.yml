@@ -1,0 +1,210 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-webui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: webui/pnpm-lock.yaml
+
+      - name: Install & Build Web UI
+        working-directory: webui
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Upload web UI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui-dist
+          path: webui/dist/
+
+  publish-windows:
+    needs: build-webui
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download web UI
+        uses: actions/download-artifact@v4
+        with:
+          name: webui-dist
+          path: src/MonaServer2.Service/wwwroot/
+
+      - name: Publish Service
+        run: |
+          dotnet publish src/MonaServer2.Service `
+            -r win-x64 -c Release `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -o publish/win-x64/service
+
+      - name: Publish Desktop
+        run: |
+          dotnet publish src/MonaServer2.Desktop `
+            -r win-x64 -c Release `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -o publish/win-x64/desktop
+
+      - name: Package
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          Compress-Archive `
+            -Path publish/win-x64/* `
+            -DestinationPath "MonaServer2-GUI-$version-win-x64.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-win-x64
+          path: MonaServer2-GUI-*.zip
+
+  publish-linux:
+    needs: build-webui
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download web UI
+        uses: actions/download-artifact@v4
+        with:
+          name: webui-dist
+          path: src/MonaServer2.Service/wwwroot/
+
+      - name: Publish Service
+        run: |
+          dotnet publish src/MonaServer2.Service \
+            -r linux-x64 -c Release \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/linux-x64/service
+
+      - name: Publish Desktop
+        run: |
+          dotnet publish src/MonaServer2.Desktop \
+            -r linux-x64 -c Release \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/linux-x64/desktop
+
+      - name: Package
+        run: |
+          VERSION="${{ github.ref_name }}"; VERSION="${VERSION#v}"
+          tar -czf "MonaServer2-GUI-${VERSION}-linux-x64.tar.gz" -C publish/linux-x64 .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-x64
+          path: MonaServer2-GUI-*.tar.gz
+
+  publish-macos:
+    needs: build-webui
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download web UI
+        uses: actions/download-artifact@v4
+        with:
+          name: webui-dist
+          path: src/MonaServer2.Service/wwwroot/
+
+      - name: Publish Service
+        run: |
+          dotnet publish src/MonaServer2.Service \
+            -r osx-arm64 -c Release \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/osx-arm64/service
+
+      - name: Publish Desktop
+        run: |
+          dotnet publish src/MonaServer2.Desktop \
+            -r osx-arm64 -c Release \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/osx-arm64/desktop
+
+      - name: Package
+        run: |
+          VERSION="${{ github.ref_name }}"; VERSION="${VERSION#v}"
+          tar -czf "MonaServer2-GUI-${VERSION}-osx-arm64.tar.gz" -C publish/osx-arm64 .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-osx-arm64
+          path: MonaServer2-GUI-*.tar.gz
+
+  create-release:
+    needs: [publish-windows, publish-linux, publish-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+          body: |
+            ## MonaServer2 GUI ${{ github.ref_name }}
+
+            **Author:** Mehdi Mahdian (m.mahdian@gmail.com)
+
+            Powered by [MonaServer2](https://github.com/MonaSolutions/MonaServer2) (MonaSolutions / Haivision) — GPL-3.0
+
+            See [CHANGELOG.md](CHANGELOG.md) for what changed in this release.
+
+            ### Downloads
+
+            | Platform | File |
+            |---|---|
+            | Windows x64 | `MonaServer2-GUI-*-win-x64.zip` |
+            | Linux x64 | `MonaServer2-GUI-*-linux-x64.tar.gz` |
+            | macOS ARM64 | `MonaServer2-GUI-*-osx-arm64.tar.gz` |
+
+            ### OBS Plugin
+
+            Pre-built `obs-mona-live` plugin binaries are included in each archive under `obs-plugin/`.
+            Install via the **OBS Plugin** page in the desktop app, or follow [manual instructions](obs-plugin/README.md).

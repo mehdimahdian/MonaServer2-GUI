@@ -1,0 +1,170 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MonaServer2.Desktop.ViewModels"
+             x:Class="MonaServer2.Desktop.Views.ServiceView"
+             x:DataType="vm:ServiceViewModel"
+             Background="#0F0F1A">
+
+  <ScrollViewer>
+    <StackPanel Margin="32,28" Spacing="24" MaxWidth="680">
+
+      <TextBlock Text="Service Control" FontSize="24" FontWeight="Bold" Foreground="#E0E0FF" />
+
+      <!-- Status card -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Ellipse Width="14" Height="14" VerticalAlignment="Center"
+                     Fill="{Binding StatusColor}" />
+            <TextBlock Text="MonaServer2" FontSize="16" FontWeight="SemiBold" Foreground="#E0E0FF" VerticalAlignment="Center"/>
+          </StackPanel>
+          <TextBlock Text="{Binding StatusText}" Foreground="#8080B0" FontSize="13" />
+        </StackPanel>
+      </Border>
+
+      <!-- Controls -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Process Control" Foreground="#6060A0" FontSize="11" />
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Command="{Binding StartCommand}"
+                    IsEnabled="{Binding !IsRunning}"
+                    Padding="20,10" CornerRadius="8"
+                    Background="#1A3D2E" Foreground="#22DD88">
+              Start
+            </Button>
+            <Button Command="{Binding StopCommand}"
+                    IsEnabled="{Binding IsRunning}"
+                    Padding="20,10" CornerRadius="8"
+                    Background="#3D1A1A" Foreground="#DD4444">
+              Stop
+            </Button>
+            <Button Command="{Binding RestartCommand}"
+                    IsEnabled="{Binding IsRunning}"
+                    Padding="20,10" CornerRadius="8"
+                    Background="#2D2D1A" Foreground="#DDCC22">
+              Restart
+            </Button>
+          </StackPanel>
+          <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}"
+                       Height="3" CornerRadius="2" Background="#252545" Foreground="#6060C0"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Binary update card -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="14">
+          <TextBlock Text="Binary Update" Foreground="#6060A0" FontSize="11" />
+
+          <!-- Installed version row -->
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="Installed:" Foreground="#8080B0" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding InstalledVersion}" Foreground="#E0E0FF" FontSize="13"
+                       FontWeight="SemiBold" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <!-- Action buttons -->
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Command="{Binding CheckUpdateCommand}"
+                    IsEnabled="{Binding !IsCheckingUpdate}"
+                    Padding="16,9" CornerRadius="8"
+                    Background="#1A2D3D" Foreground="#4499DD">
+              Check for Updates
+            </Button>
+            <Button Command="{Binding ToggleCustomUrlCommand}"
+                    Padding="16,9" CornerRadius="8"
+                    Background="#252535" Foreground="#8080B0">
+              Custom URL
+            </Button>
+          </StackPanel>
+
+          <!-- Checking spinner -->
+          <ProgressBar IsIndeterminate="True"
+                       IsVisible="{Binding IsCheckingUpdate}"
+                       Height="3" CornerRadius="2" Background="#252545" Foreground="#4499DD"/>
+
+          <!-- Informational result (up to date / no release / no asset) -->
+          <TextBlock Text="{Binding CheckResultMessage}"
+                     IsVisible="{Binding CheckResultMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                     Foreground="#8080A0" FontSize="12" TextWrapping="Wrap"/>
+
+          <!-- Update available banner -->
+          <Border Background="#1A2D1A" CornerRadius="8" Padding="14"
+                  IsVisible="{Binding UpdateAvailable}">
+            <StackPanel Spacing="10">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Update available:" Foreground="#80BB80" FontSize="13" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding LatestVersion}" Foreground="#22DD88" FontSize="13"
+                           FontWeight="SemiBold" VerticalAlignment="Center"/>
+              </StackPanel>
+              <Button Command="{Binding InstallUpdateCommand}"
+                      IsEnabled="{Binding !IsUpdating}"
+                      Padding="16,9" CornerRadius="8"
+                      Background="#1A3D2E" Foreground="#22DD88">
+                Install Update
+              </Button>
+            </StackPanel>
+          </Border>
+
+          <!-- Custom URL section -->
+          <Border Background="#13132A" CornerRadius="8" Padding="14"
+                  IsVisible="{Binding ShowCustomUrl}">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Download URL" Foreground="#6060A0" FontSize="11"/>
+              <TextBox Text="{Binding CustomUrl}"
+                       Watermark="https://example.com/MonaServer2-windows.zip"
+                       Background="#0F0F1A" Foreground="#E0E0FF"
+                       BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+              <TextBlock Text="Version tag" Foreground="#6060A0" FontSize="11" Margin="0,4,0,0"/>
+              <TextBox Text="{Binding CustomVersion}" Watermark="v2.0.0"
+                       Background="#0F0F1A" Foreground="#E0E0FF"
+                       BorderBrush="#3D3D5E" CornerRadius="6" Padding="10,7"/>
+              <Button Command="{Binding InstallFromUrlCommand}"
+                      IsEnabled="{Binding !IsUpdating}"
+                      Margin="0,4,0,0" Padding="16,9" CornerRadius="8"
+                      Background="#2D1A3D" Foreground="#BB88EE">
+                Install from URL
+              </Button>
+            </StackPanel>
+          </Border>
+
+          <!-- Download / install progress -->
+          <StackPanel Spacing="6" IsVisible="{Binding IsUpdating}">
+            <ProgressBar Value="{Binding UpdateProgress}" Maximum="100"
+                         Height="6" CornerRadius="3" Background="#252545" Foreground="#6060C0"/>
+            <TextBlock Text="{Binding UpdateStatusMessage}" Foreground="#8080C0" FontSize="12"/>
+          </StackPanel>
+
+          <!-- Install complete notice -->
+          <Border Background="#1A2540" CornerRadius="8" Padding="12"
+                  IsVisible="{Binding UpdateComplete}">
+            <TextBlock Text="{Binding UpdateStatusMessage}" Foreground="#66AAEE"
+                       FontSize="12" TextWrapping="Wrap"/>
+          </Border>
+
+        </StackPanel>
+      </Border>
+
+      <!-- Error -->
+      <Border Background="#3D1A1A" CornerRadius="8" Padding="16"
+              IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="#DD8888" FontSize="12" TextWrapping="Wrap"/>
+      </Border>
+
+      <!-- Web UI link -->
+      <Border Background="#1A1A2E" CornerRadius="12" Padding="24" BorderBrush="#2D2D4E" BorderThickness="1">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Web Dashboard" Foreground="#6060A0" FontSize="11" />
+          <TextBlock Text="Open http://localhost:8080 in any browser to access the web dashboard."
+                     Foreground="#A0A0C0" FontSize="13" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Credit -->
+      <TextBlock Foreground="#3A3A5C" FontSize="11" TextWrapping="Wrap"
+                 Text="MonaServer2 GUI manages the MonaServer2 binary developed by MonaSolutions and sponsored by Haivision. MonaServer2 is licensed under GPL-3.0." />
+
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>
