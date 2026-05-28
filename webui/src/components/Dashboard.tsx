@@ -34,7 +34,7 @@ function StatCard({ label, value, sub, color = 'text-text-primary' }: {
   )
 }
 
-export default function Dashboard({ status, publications, sessions }: Props) {
+export default function Dashboard({ status, publications, sessions: _sessions }: Props) {
   const running = status?.isRunning ?? false
 
   return (

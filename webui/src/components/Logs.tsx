@@ -67,7 +67,7 @@ export default function Logs({ logs }: { logs: LogEntry[] }) {
         {filtered.map((entry, i) => (
           <div key={i} className="flex items-start gap-3 hover:bg-white/5 px-2 py-0.5 rounded">
             <span className="text-gray-600 flex-shrink-0 w-24">
-              {new Date(entry.timestamp).toLocaleTimeString('en', { hour12: false, fractionalSecondDigits: 3 })}
+              {new Date(entry.timestamp).toLocaleTimeString('en', { hour12: false, second: '2-digit', hour: '2-digit', minute: '2-digit' })}
             </span>
             <span className={`flex-shrink-0 w-14 text-center rounded px-1 text-[10px] font-bold ${levelColors[entry.level]}`}>
               {entry.level.toUpperCase()}
