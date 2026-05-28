@@ -40,8 +40,6 @@ jobs:
   publish-windows:
     needs: build-webui
     runs-on: windows-latest
-    env:
-      HAVE_CERT: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +54,7 @@ jobs:
           path: src/MonaServer2.Service/wwwroot/
 
       - name: Generate app icon
+        shell: pwsh
         run: powershell -File installer\windows\Generate-Icon.ps1
 
       - name: Publish Service
@@ -74,28 +73,34 @@ jobs:
             -p:PublishSingleFile=true `
             -o publish/win-x64/desktop
 
-      # ── Code Signing (skipped if no certificate secret) ─────────────────
+      # ── Code Signing ─────────────────────────────────────────────────────
+      # Steps below are conditional — they run only when the certificate
+      # secrets are configured in the repository settings.
+      # To add signing: Settings → Secrets → CERTIFICATE_PFX_BASE64 + CERTIFICATE_PFX_PASSWORD
       - name: Decode certificate
-        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+        if: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' }}
+        shell: pwsh
         run: |
-          $pfx = [Convert]::FromBase64String("${{ secrets.CERTIFICATE_PFX_BASE64 }}")
-          [IO.File]::WriteAllBytes("$env:TEMP\codesign.pfx", $pfx)
+          $pfx = [Convert]::FromBase64String('${{ secrets.CERTIFICATE_PFX_BASE64 }}')
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP\codesign.pfx", $pfx)
 
-      - name: Sign Service executable
-        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+      - name: Sign Service
+        if: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' }}
+        shell: pwsh
         run: |
           powershell -File installer\windows\Sign-Binaries.ps1 `
-            -PublishDir publish/win-x64/service `
-            -CertPfxPath "$env:TEMP\codesign.pfx" `
-            -CertPassword "${{ secrets.CERTIFICATE_PFX_PASSWORD }}"
+            -PublishDir publish\win-x64\service `
+            -CertPfxPath "$env:RUNNER_TEMP\codesign.pfx" `
+            -CertPassword '${{ secrets.CERTIFICATE_PFX_PASSWORD }}'
 
-      - name: Sign Desktop executable
-        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+      - name: Sign Desktop
+        if: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' }}
+        shell: pwsh
         run: |
           powershell -File installer\windows\Sign-Binaries.ps1 `
-            -PublishDir publish/win-x64/desktop `
-            -CertPfxPath "$env:TEMP\codesign.pfx" `
-            -CertPassword "${{ secrets.CERTIFICATE_PFX_PASSWORD }}"
+            -PublishDir publish\win-x64\desktop `
+            -CertPfxPath "$env:RUNNER_TEMP\codesign.pfx" `
+            -CertPassword '${{ secrets.CERTIFICATE_PFX_PASSWORD }}'
 
       # ── Build Inno Setup installer ───────────────────────────────────────
       - name: Install Inno Setup
@@ -105,35 +110,37 @@ jobs:
         run: New-Item -ItemType Directory -Force -Path dist\installer
 
       - name: Build installer
+        shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $version = '${{ github.ref_name }}' -replace '^v', ''
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
             /DMyAppVersion=$version `
             installer\windows\MonaServer2-GUI.iss
-        env:
-          # Inno Setup SignTool — used only when cert is available
-          SIGNTOOL_CMD: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' && format('sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f "{0}\codesign.pfx" /p "{1}" $f', env.TEMP, secrets.CERTIFICATE_PFX_PASSWORD) || '' }}
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup build failed" }
 
-      - name: Sign installer (if cert available)
-        if: secrets.CERTIFICATE_PFX_BASE64 != ''
+      - name: Sign installer
+        if: ${{ secrets.CERTIFICATE_PFX_BASE64 != '' }}
+        shell: pwsh
         run: |
-          $installer = Get-ChildItem dist\installer\*.exe | Select-Object -First 1
           powershell -File installer\windows\Sign-Binaries.ps1 `
             -PublishDir dist\installer `
-            -CertPfxPath "$env:TEMP\codesign.pfx" `
-            -CertPassword "${{ secrets.CERTIFICATE_PFX_PASSWORD }}"
+            -CertPfxPath "$env:RUNNER_TEMP\codesign.pfx" `
+            -CertPassword '${{ secrets.CERTIFICATE_PFX_PASSWORD }}'
 
-      # ── Also make a portable zip ─────────────────────────────────────────
+      # ── Package portable zip ─────────────────────────────────────────────
       - name: Package portable zip
+        shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}" -replace '^v', ''
-          $zipPath = "MonaServer2-GUI-$version-win-x64.zip"
-          Compress-Archive -Path publish/win-x64/service,publish/win-x64/desktop -DestinationPath $zipPath
+          $version = '${{ github.ref_name }}' -replace '^v', ''
+          Compress-Archive `
+            -Path publish\win-x64\service, publish\win-x64\desktop `
+            -DestinationPath "MonaServer2-GUI-$version-win-x64.zip"
 
-      - name: Rename installer for upload
+      - name: Stage installer for upload
+        shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}" -replace '^v', ''
-          $src = Get-ChildItem dist\installer\*-Setup.exe | Select-Object -First 1
+          $version = '${{ github.ref_name }}' -replace '^v', ''
+          $src = Get-ChildItem dist\installer\*-Setup.exe -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($src) {
             Copy-Item $src.FullName "MonaServer2-GUI-$version-win-x64-Setup.exe"
           }

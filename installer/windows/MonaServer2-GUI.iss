@@ -49,8 +49,7 @@ MinVersion=10.0.17763
 CloseApplications=yes
 CloseApplicationsFilter=MonaServer2.Desktop.exe,MonaServer2.Service.exe
 RestartApplications=no
-SignTool=MySignTool $f
-SignedUninstaller=yes
+; Signing is handled outside Inno Setup by Sign-Binaries.ps1 in CI
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
